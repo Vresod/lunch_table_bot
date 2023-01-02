@@ -1,7 +1,16 @@
 import logging
 import discord
+import re
 
 message_totals = {}
+funny_words = {
+	"based": 0,
+	"cum": 0,
+	"shitass": 0
+	# TODO: figure out sunglasses emoji
+}
+
+funny_words_regex = re.compile(rf"\b({'|'.join(funny_words)})",flags=re.IGNORECASE) # that's right, dynamically generated regex
 
 async def update_message_totals(client:discord.Client,guild:discord.Guild,message_total_channel:discord.abc.Messageable) -> None:
 	"""
@@ -13,7 +22,6 @@ async def update_message_totals(client:discord.Client,guild:discord.Guild,messag
 	"""
 	await get_message_totals(guild)
 	await send_message_totals(client, message_total_channel)
-
 
 async def send_message_totals(client:discord.Client, message_total_channel:discord.abc.Messageable) -> None:
 	"""
@@ -27,7 +35,7 @@ async def send_message_totals(client:discord.Client, message_total_channel:disco
 		total_msg = [msg async for msg in message_total_channel.history(limit=None) if msg.author == client.user][0]
 	except IndexError:
 		total_msg = await message_total_channel.send("fart", allowed_mentions=discord.AllowedMentions.none())
-	msg_content = "```\n"
+	msg_content = "User message counts: ```\n"
 	totals_sorted = sort_dict(message_totals)
 	users:dict[discord.User] = {user_id:await client.fetch_user(user_id) for user_id in totals_sorted}
 	# these are the worst 2 lines in the entire codebase and I wish there was a better way to do it
@@ -35,6 +43,10 @@ async def send_message_totals(client:discord.Client, message_total_channel:disco
 	longest_id = len(str(users[max(users,key=lambda x:len(str(users[x].id)))].id))
 	for entry in totals_sorted.items():
 		msg_content += f"{(await client.fetch_user(entry[0])).name.ljust(longest_name)} <{str(entry[0]).ljust(longest_id)}> - {entry[1]}\n"
+	longest_word = len(max(funny_words,key=lambda x: len(x)))
+	msg_content += "``` Word counts: ```\n"
+	for word,count in sort_dict(funny_words).items():
+		msg_content += f"{word.ljust(longest_word)} - {count}\n"
 	msg_content += "```"
 	await total_msg.edit(content=msg_content, allowed_mentions=discord.AllowedMentions.none())
 
@@ -56,9 +68,9 @@ async def get_message_totals(guild:discord.Guild) -> None:
 	for index,channel in enumerate(channels):
 		logging.debug(f"starting {channel}, id:{channel.id}")
 		# if channel.id == 1052616491721310338: continue
-		# if index > 1: break # debug statement to improve speed of testing
+		# if index > 5: break # debug statement to improve speed of testing
 		async for message in channel.history(limit=None):
-			logging.debug(f"message in {channel}, id:{message.id}")
+			await test_message_for_funny(message)
 			if not count_author(message.author):
 				continue
 			if not message_totals.get(message.author.id):
@@ -66,6 +78,16 @@ async def get_message_totals(guild:discord.Guild) -> None:
 			message_totals[message.author.id] += 1
 	logging.debug(message_totals)
 
+async def test_message_for_funny(message:discord.Message) -> None:
+	"""
+	Tests if a message contains any funny words
+	:param message: the message to test
+	:return:
+	"""
+	string = message.content
+	matches = funny_words_regex.findall(string)
+	for match in matches:
+			funny_words[match.lower()] += 1
 def count_author(author:discord.Member) -> bool:
 	"""
 	returns if the member should be counted

@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext import tasks
 
-from message_totals import update_message_totals, send_message_totals, message_totals, count_author
+from message_totals import update_message_totals, send_message_totals, message_totals, count_author, test_message_for_funny
 
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
@@ -60,11 +60,14 @@ async def on_ready():
 @client.event
 async def on_message(message:discord.Message):
 	# TODO: finish #real feature
+	if message.guild.id != MY_GUILD.id: # technically does nothing in the actual bot but good to have regardless
+		return
 	if not count_author(message.author):
 		return
 	if not message_totals.get(message.author.id):
 		message_totals[message.author.id] = 0
 	message_totals[message.author.id] += 1
+	await test_message_for_funny(message)
 	if message.content.startswith(f"<#{REAL_ID}>"):
 		channel = client.get_channel(REAL_ID)
 		real_msg = [msg async for msg in channel.history(before=discord.Object(message.id),limit=1)][0]
@@ -88,7 +91,7 @@ async def hello(interaction: discord.Interaction):
 # 	# with open("latest_log.txt","w") as logfile: logfile.write(str(latest_log_id))
 # 	print("a")
 
-send_message_totals = tasks.loop(minutes=10)(send_message_totals)
+send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
 if __name__ == "__main__":
 	client.run("Nzc3NzAzMDYwMzU2ODU3ODk3.GRqcYo.zJAF8TbtftAAEewHwFwsR7VOF1KFIHynXg1fME")
