@@ -113,3 +113,14 @@ def get_talkable_channels(guild:discord.Guild):
 				yield thread
 		if channel.type != channel_types.forum:
 			yield channel
+
+async def handle_totals_update(message:discord.Message) -> None:
+	"""
+	Handles updating the message_totals asynchronously
+	:param message: the message with which to update the totals
+	:return:
+	"""
+	if not message_totals.get(message.author.id):
+		message_totals[message.author.id] = 0
+	message_totals[message.author.id] += 1
+	await test_message_for_funny(message)

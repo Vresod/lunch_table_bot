@@ -1,10 +1,11 @@
 import logging
-
 import discord
 from discord import app_commands
 from discord.ext import tasks
+import sys
 
-from message_totals import update_message_totals, send_message_totals, message_totals, count_author, test_message_for_funny
+from message_totals import update_message_totals, send_message_totals, handle_totals_update, count_author
+from real_msg import handle_real
 
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
@@ -35,6 +36,7 @@ class MyClient(discord.Client):
 
 client = MyClient()
 discord.utils.setup_logging(level=logging.DEBUG)
+debugging = hasattr(sys, 'gettrace') and sys.gettrace() is not None
 # audit_guild:discord.Guild = None
 # audit_channel:discord.TextChannel = None
 
@@ -52,7 +54,8 @@ async def on_ready():
 	guild = client.get_guild(MY_GUILD.id)
 	totals_channel = client.get_channel(MESSAGE_TOTALS_CHANNEL_ID)
 	logging.info("Begininning message count")
-	await update_message_totals(client,guild,totals_channel)
+	if not debugging: #omegalul
+		await update_message_totals(client,guild,totals_channel)
 	logging.info("Message count complete, updating count in discord...")
 	await send_message_totals.start(client,totals_channel)
 	logging.info("Count updated")
@@ -62,16 +65,10 @@ async def on_message(message:discord.Message):
 	# TODO: finish #real feature
 	if message.guild.id != MY_GUILD.id: # technically does nothing in the actual bot but good to have regardless
 		return
-	if not count_author(message.author):
-		return
-	if not message_totals.get(message.author.id):
-		message_totals[message.author.id] = 0
-	message_totals[message.author.id] += 1
-	await test_message_for_funny(message)
+	if count_author(message.author):
+		await handle_totals_update(message)
 	if message.content.startswith(f"<#{REAL_ID}>"):
-		channel = client.get_channel(REAL_ID)
-		real_msg = [msg async for msg in channel.history(before=discord.Object(message.id),limit=1)][0]
-		await channel.send(f"real {real_msg.jump_url}")
+		await handle_real(message,client.get_channel(REAL_ID))
 
 @client.tree.command()
 async def hello(interaction: discord.Interaction):
