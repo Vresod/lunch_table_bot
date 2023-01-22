@@ -4,6 +4,7 @@ from discord import app_commands
 from discord.ext import tasks
 import sys
 
+import audit_logs
 from message_totals import update_message_totals, send_message_totals, handle_totals_update, count_author
 from real_msg import handle_real
 
@@ -50,7 +51,7 @@ async def on_ready():
 		open("latest_log.txt","x")
 		open("latest_log.txt","w").write("0")
 	except FileExistsError: pass
-	# await check_for_new_logs()
+	await audit_logs.check_for_new_logs.start()
 	guild = client.get_guild(MY_GUILD.id)
 	totals_channel = client.get_channel(MESSAGE_TOTALS_CHANNEL_ID)
 	logging.info("Begininning message count")
@@ -75,20 +76,13 @@ async def hello(interaction: discord.Interaction):
 	"""Says hello!"""
 	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
 
-# @tasks.loop(seconds=30)
-# async def check_for_new_logs():
-# 	global audit_guild, audit_channel
-# 	with open("latest_log.txt","r") as logfile: latest_log_id = int(logfile.read())
-# 	embed = discord.Embed()
-# 	entries = []
-# 	async for entry in audit_guild.audit_logs(after=discord.Object(id=latest_log_id),oldest_first=True):
-# 		new_latest_log_id = entry.id
-# 		print(entry)
-# 		entries.append(entry)
-# 	# with open("latest_log.txt","w") as logfile: logfile.write(str(latest_log_id))
-# 	print("a")
 
 send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
+def main():
+	with open("tokenfile","r") as tokenfile: token = tokenfile.read()
+	client.run(token)
+
+
 if __name__ == "__main__":
-	client.run("Nzc3NzAzMDYwMzU2ODU3ODk3.GRqcYo.zJAF8TbtftAAEewHwFwsR7VOF1KFIHynXg1fME")
+	main()
