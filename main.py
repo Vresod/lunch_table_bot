@@ -2,6 +2,7 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import tasks
+import audit_log_handlers # not required here but it is required that it gets run at some point
 import sys
 
 import audit_logs
@@ -11,6 +12,7 @@ from real_msg import handle_real
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
 MESSAGE_TOTALS_CHANNEL_ID = 1053539851292647584                     # replace with channel id of message totals channel
+AUDIT_CHANNEL_ID          = 1104371394501543940                     # replace with channel id for audit logs
 
 class MyClient(discord.Client):
 	def __init__(self):
@@ -44,22 +46,16 @@ debugging = hasattr(sys, 'gettrace') and sys.gettrace() is not None
 @client.event
 async def on_ready():
 	logging.info(f'Logged in as {client.user} (ID: {client.user.id}, INVITE: "https://discord.com/outh2/authorize?client_id={client.user.id}&permissions=128&scope=bot%20applications.commands")')
-	# global audit_guild, audit_channel
-	# audit_guild = client.get_guild(1043170926725955696)
-	# audit_channel = client.get_channel(1043713945015439402)
-	try:
-		open("latest_log.txt","x")
-		open("latest_log.txt","w").write("0")
-	except FileExistsError: pass
-	await audit_logs.check_for_new_logs.start()
 	guild = client.get_guild(MY_GUILD.id)
+	audit_channel = client.get_channel(AUDIT_CHANNEL_ID)
 	totals_channel = client.get_channel(MESSAGE_TOTALS_CHANNEL_ID)
 	logging.info("Begininning message count")
 	if not debugging: #omegalul
 		await update_message_totals(client,guild,totals_channel)
 	logging.info("Message count complete, updating count in discord...")
-	await send_message_totals.start(client,totals_channel)
-	logging.info("Count updated")
+	# await send_message_totals.start(client,totals_channel)
+	logging.info("Count updated, starting audit log handling...")
+	await audit_logs.check_for_new_logs.start(guild,audit_channel,debugging)
 
 @client.event
 async def on_message(message:discord.Message):
@@ -80,6 +76,10 @@ async def hello(interaction: discord.Interaction):
 send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
 def main():
+	try:
+		open("latest_log.txt","x")
+		open("latest_log.txt","w").write("0")
+	except FileExistsError: pass
 	with open("tokenfile","r") as tokenfile: token = tokenfile.read()
 	client.run(token)
 
