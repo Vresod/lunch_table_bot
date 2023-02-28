@@ -6,7 +6,8 @@ message_totals = {}
 funny_words = {
 	"based": 0,
 	"cum": 0,
-	"shitass": 0
+	"shitass": 0,
+	"wuh": 0
 	# TODO: figure out sunglasses emoji
 }
 

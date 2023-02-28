@@ -51,7 +51,7 @@ async def on_ready():
 		open("latest_log.txt","x")
 		open("latest_log.txt","w").write("0")
 	except FileExistsError: pass
-	await audit_logs.check_for_new_logs.start()
+	#await audit_logs.check_for_new_logs.start()
 	guild = client.get_guild(MY_GUILD.id)
 	totals_channel = client.get_channel(MESSAGE_TOTALS_CHANNEL_ID)
 	logging.info("Begininning message count")
