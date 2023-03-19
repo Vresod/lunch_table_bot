@@ -7,6 +7,7 @@ import sys
 import audit_logs
 from message_totals import update_message_totals, send_message_totals, handle_totals_update, count_author
 from real_msg import handle_real
+import responses
 
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
