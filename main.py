@@ -38,6 +38,7 @@ class MyClient(discord.Client):
 client = MyClient()
 discord.utils.setup_logging(level=logging.DEBUG)
 debugging = hasattr(sys, 'gettrace') and sys.gettrace() is not None
+last_message:discord.Message = None
 # audit_guild:discord.Guild = None
 # audit_channel:discord.TextChannel = None
 
@@ -70,6 +71,10 @@ async def on_message(message:discord.Message):
 		await handle_totals_update(message)
 	if message.content.startswith(f"<#{REAL_ID}>"):
 		await handle_real(message,client.get_channel(REAL_ID))
+	global last_message
+	message_matches = last_message is not None and last_message.content == message.content and last_message.channel == message.channel
+	if message_matches and message.author != client.user: await message.channel.send(message.content)
+	last_message = message
 
 @client.tree.command()
 async def hello(interaction: discord.Interaction):
