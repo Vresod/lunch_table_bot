@@ -73,7 +73,7 @@ async def on_message(message:discord.Message):
 		await handle_real(message,client.get_channel(REAL_ID))
 	global last_message
 	message_matches = last_message is not None and last_message.content == message.content and last_message.channel == message.channel
-	if message_matches and message.author != client.user: await message.channel.send(message.content)
+	if message_matches and message.author != client.user and message.content: await message.channel.send(message.content)
 	last_message = message
 
 @client.tree.command()
