@@ -36,13 +36,14 @@ for key, response in tae.items():
 @discord.app_commands.rename(chosen_response="response_to_post")
 async def _response(interaction: discord.Interaction, chosen_response: Literal[tuple(responses.keys())]): # don't worry about that not-literal literal it's fine
 	if isinstance(response := responses[chosen_response],discord.File):
-		await interaction.response.send_message(file=response)
+		await interaction.channel.send(file=response)
 	elif isinstance(response,str):
-		await interaction.response.send_message(content=response)
+		await interaction.channel.send(content=response)
 	elif isinstance(response,discord.Embed):
-		await interaction.response.send_message(embed=response)
+		await interaction.channel.send(embed=response)
 	else:
 		raise ValueError("given response is not one of [discord.File, str, discord.Embed]")
+	await interaction.response.send_message("Response sent",ephemeral=True)
 
 if __name__ == "__main__":
 	print(responses)
