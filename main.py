@@ -87,6 +87,7 @@ send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
 def main():
 	with open("tokenfile","r") as tokenfile: token = tokenfile.read()
+	client.tree.add_command(responses._response)
 	client.run(token)
 
 
