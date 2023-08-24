@@ -43,6 +43,23 @@ last_message:discord.Message = None
 # audit_guild:discord.Guild = None
 # audit_channel:discord.TextChannel = None
 
+STARBOARD_CHANNEL = 1043262188606996620
+PIN_EMOJIS = {"📌", "⭐", "💀"}  # pushpin, star, and skull emojis
+
+async def pin_message(message: discord.Message, starboard: discord.TextChannel):
+	embed = discord.Embed(
+		title=f"#{message.channel}",
+		description=message.content,
+		url=f"https://discord.com/channels/{message.guild.id}/{message.channel.id}"
+	)
+	embed.set_author(name=message.author.display_name,
+	                 icon_url=str(message.author.avatar))
+	# embed.set_footer(text=f"[Jump]({message.jump_url})")
+	embed.add_field(name="Original Message:", value=f"[Jump]({message.jump_url})")
+	if len(message.attachments) > 0:
+		embed.set_image(url=message.attachments[0].url)
+	await starboard.send(embed=embed, content="", allowed_mentions=discord.AllowedMentions.none())
+
 @client.event
 async def on_ready():
 	logging.info(f'Logged in as {client.user} (ID: {client.user.id}, INVITE: "https://discord.com/outh2/authorize?client_id={client.user.id}&permissions=128&scope=bot%20applications.commands")')
@@ -76,6 +93,18 @@ async def on_message(message:discord.Message):
 	message_matches = last_message is not None and last_message.content == message.content and last_message.channel == message.channel
 	if message_matches and message.author != client.user and message.content: await message.channel.send(message.content)
 	last_message = message
+
+
+@client.event
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+	if payload.emoji.name not in PIN_EMOJIS:
+		return
+	message: discord.Message = await (client.get_channel(payload.channel_id).get_partial_message(payload.message_id)).fetch()
+	starboard: discord.TextChannel = client.get_channel(STARBOARD_CHANNEL)
+	for reaction in message.reactions:
+		if reaction.count > 1:
+			return
+	await pin_message(message, starboard)
 
 @client.tree.command()
 async def hello(interaction: discord.Interaction):
