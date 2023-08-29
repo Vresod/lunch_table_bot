@@ -68,6 +68,9 @@ async def get_message_totals(guild:discord.Guild) -> None:
 	channels = get_talkable_channels(guild)
 	for index,channel in enumerate(channels):
 		logging.debug(f"starting {channel}, id:{channel.id}")
+		if not channel.last_message_id:
+			logging.debug(f"channel {channel} inaccessible, skipping")
+			continue
 		# if channel.id == 1052616491721310338: continue
 		# if index > 5: break # debug statement to improve speed of testing
 		async for message in channel.history(limit=None):
