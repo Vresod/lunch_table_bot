@@ -94,7 +94,6 @@ async def on_message(message:discord.Message):
 	if message_matches and message.author != client.user and message.content: await message.channel.send(message.content)
 	last_message = message
 
-
 @client.event
 async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 	if payload.emoji.name not in PIN_EMOJIS:
@@ -111,6 +110,11 @@ async def hello(interaction: discord.Interaction):
 	"""Says hello!"""
 	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
 
+
+@client.tree.command()
+async def echo(interaction: discord.Interaction, content:str):
+	"""Possess PDB!"""
+	await interaction.response.send_message(f'Echoed')
 
 send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
