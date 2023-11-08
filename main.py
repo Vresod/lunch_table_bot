@@ -12,6 +12,8 @@ import responses
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
 MESSAGE_TOTALS_CHANNEL_ID = 1053539851292647584                     # replace with channel id of message totals channel
+STARBOARD_CHANNEL         = 1043262188606996620                     # replace with channel id of starboard channel
+PIN_EMOJIS                = {"💀",}                                 # replace with emojis that should set off the starboard code
 
 class MyClient(discord.Client):
 	def __init__(self):
@@ -43,17 +45,14 @@ last_message:discord.Message = None
 # audit_guild:discord.Guild = None
 # audit_channel:discord.TextChannel = None
 
-STARBOARD_CHANNEL = 1043262188606996620
-PIN_EMOJIS = {"📌", "⭐", "💀"}  # pushpin, star, and skull emojis
-
+# this function should be somewhere else but I'll worry about that later (it will never get moved)
 async def pin_message(message: discord.Message, starboard: discord.TextChannel):
 	embed = discord.Embed(
 		title=f"#{message.channel}",
 		description=message.content,
 		url=f"https://discord.com/channels/{message.guild.id}/{message.channel.id}"
 	)
-	embed.set_author(name=message.author.display_name,
-	                 icon_url=str(message.author.avatar))
+	embed.set_author(name=message.author.display_name, icon_url=str(message.author.avatar))
 	# embed.set_footer(text=f"[Jump]({message.jump_url})")
 	embed.add_field(name="Original Message:", value=f"[Jump]({message.jump_url})")
 	if len(message.attachments) > 0:
@@ -105,16 +104,16 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 			return
 	await pin_message(message, starboard)
 
-@client.tree.command()
-async def hello(interaction: discord.Interaction):
-	"""Says hello!"""
-	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
-
-
+# @client.tree.command()
+# async def hello(interaction: discord.Interaction):
+# 	"""Says hello!"""
+# 	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
+#
 @client.tree.command()
 async def echo(interaction: discord.Interaction, content:str):
 	"""Possess PDB!"""
-	await interaction.response.send_message(f'Echoed')
+	await interaction.channel.send(content)
+	await interaction.response.send_message(f'Echoed',ephemeral=True)
 
 send_message_totals = tasks.loop(minutes=5)(send_message_totals)
 
