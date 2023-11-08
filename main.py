@@ -104,11 +104,11 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 			return
 	await pin_message(message, starboard)
 
-# @client.tree.command()
-# async def hello(interaction: discord.Interaction):
-# 	"""Says hello!"""
-# 	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
-#
+@client.tree.command()
+async def hello(interaction: discord.Interaction):
+	"""Says hello!"""
+	await interaction.response.send_message(f'Hi, {interaction.user.mention}')
+
 @client.tree.command()
 async def echo(interaction: discord.Interaction, content:str):
 	"""Possess PDB!"""
