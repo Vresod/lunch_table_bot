@@ -71,7 +71,7 @@ async def get_message_totals(guild:discord.Guild) -> None:
 		if not channel.last_message_id:
 			logging.debug(f"channel {channel} inaccessible, skipping")
 			continue
-		# if channel.id == 1052616491721310338: continue
+		if channel.id == 1103349519489441846: continue # nick's secret voice chat room crashes the thing, despite the above check
 		# if index > 5: break # debug statement to improve speed of testing
 		async for message in channel.history(limit=None):
 			await test_message_for_funny(message)
@@ -91,7 +91,7 @@ async def test_message_for_funny(message:discord.Message) -> None:
 	string = message.content
 	matches = funny_words_regex.findall(string)
 	for match in matches:
-			funny_words[match.lower()] += 1
+		funny_words[match.lower()] += 1
 def count_author(author:discord.Member) -> bool:
 	"""
 	returns if the member should be counted
