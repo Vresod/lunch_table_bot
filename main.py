@@ -100,7 +100,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 	message: discord.Message = await (client.get_channel(payload.channel_id).get_partial_message(payload.message_id)).fetch()
 	starboard: discord.TextChannel = client.get_channel(STARBOARD_CHANNEL)
 	for reaction in message.reactions:
-		if reaction.count > 1:
+		if reaction.count != 2:
 			return
 	await pin_message(message, starboard)
 
