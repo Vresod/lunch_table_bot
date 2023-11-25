@@ -3,11 +3,13 @@ import discord
 from discord import app_commands
 from discord.ext import tasks
 import sys
+import re
 
 import audit_logs
 from message_totals import update_message_totals, send_message_totals, handle_totals_update, count_author
 from real_msg import handle_real
 import responses
+from website_fixer import website_fixer_regex, handle_website
 
 MY_GUILD                  = discord.Object(id=1043170926725955696)  # replace with your guild id
 REAL_ID                   = 1044246059284701324                     # replace with channel id of real channel
@@ -81,13 +83,15 @@ async def on_ready():
 
 @client.event
 async def on_message(message:discord.Message):
-	# TODO: finish #real feature
 	if message.guild.id != MY_GUILD.id: # technically does nothing in the actual bot but good to have regardless
 		return
 	if count_author(message.author):
 		await handle_totals_update(message)
 	if message.content.startswith(f"<#{REAL_ID}>"):
 		await handle_real(message,client.get_channel(REAL_ID))
+	if website_fixer_regex.search(message.content):
+		print(message.content)
+		await handle_website(message)
 	global last_message
 	message_matches = last_message is not None and last_message.content == message.content and last_message.channel == message.channel
 	if message_matches and message.author != client.user and message.content: await message.channel.send(message.content)
