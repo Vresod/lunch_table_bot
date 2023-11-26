@@ -3,9 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import tasks
 import sys
-import re
 
-import audit_logs
 from message_totals import update_message_totals, send_message_totals, handle_totals_update, count_author
 from real_msg import handle_real
 import responses
