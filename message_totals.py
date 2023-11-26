@@ -68,10 +68,19 @@ async def get_message_totals(guild:discord.Guild) -> None:
 	channels = get_talkable_channels(guild)
 	for index,channel in enumerate(channels):
 		logging.debug(f"starting {channel}, id:{channel.id}")
-		if not channel.last_message_id:
-			logging.debug(f"channel {channel} inaccessible, skipping")
-			continue
-		if channel.id == 1103349519489441846: continue # nick's secret voice chat room crashes the thing, despite the above check
+		# if not channel.last_message_id:
+		# 	logging.debug(f"channel {channel} inaccessible, skipping")
+		# 	continue
+		# if channel.id == 1103349519489441846: continue # nick's secret voice chat room crashes the thing, despite the above check
+		if guild.me not in channel.members: # preliminary test; sort of a "probably yes/definitely no" kind of thing
+			if not channel.last_message_id:
+				logging.debug(f"channel {channel} empty, skipping")
+				continue
+			try:
+				await channel.fetch_message(channel.last_message_id)
+			except (discord.NotFound, discord.Forbidden):
+				logging.debug(f"channel {channel} inaccessible, skipping")
+				continue
 		# if index > 5: break # debug statement to improve speed of testing
 		async for message in channel.history(limit=None):
 			await test_message_for_funny(message)
